@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veyra Vendor App Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .app-content {
+            padding: 20px;
+            height: calc(100% - 44px);
+            overflow-y: auto;
+        }
+        
+        .screen-1 {
+            display: block;
+        }
+        
+        .screen-2, .screen-3 {
+            display: none;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        input {
+            width: 100%;
+            height: 56px;
+            border: 1px solid #E5E5E5;
+            border-radius: 28px;
+            padding: 0 20px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus {
+            border-color: #EF6C4D;
+            border-width: 2px;
+        }
+        
+        .btn {
+            width: 100%;
+            height: 56px;
+            border-radius: 28px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background: #EF6C4D;
+            color: white;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.3;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #EF6C4D;
+            color: #EF6C4D;
+        }
+        
+        .btn-tertiary {
+            background: transparent;
+            color: #666;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 32px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #E5E5E5;
+        }
+        
+        .divider span {
+            margin: 0 16px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .language-selector {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid #F0F0F0;
+            margin-top: auto;
+        }
+        
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #F0F0F0;
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #EF6C4D;
+            width: 20%;
+            border-radius: 2px;
+        }
+        
+        .requirements {
+            margin: 16px 0;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .requirement-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .requirement.met {
+            color: #4CAF50;
+        }
+        
+        .requirement.unmet {
+            color: #FF4444;
+        }
+        
+        .customer-signin {
+            text-align: center;
+            margin-top: 40px;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #EF6C4D;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+            </div>
+            
+            <!-- Screen 1: Create Account -->
+            <div class="app-content screen-1" id="screen1">
+                <h1>Create an account</h1>
+                <p class="subtitle">Create an account or login to book and manage your appointments.</p>
+                
+                <div class="form-group">
+                    <label>Email address</label>
+                    <input type="email" id="email" placeholder="Enter your email address" oninput="validateEmail()">
+                </div>
+                
+                <button class="btn btn-primary" id="continueBtn" disabled onclick="goToScreen2()">Continue</button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="showGoogleSignIn()">🔍 Continue with Google</button>
+                
+                <div class="customer-signin">
+                    Sign in as a Customer
+                </div>
+                
+                <div class="language-selector">
+                    🇺🇸 English (United States) ▼
+                </div>
+            </div>
+            
+            <!-- Screen 2: Setup Password -->
+            <div class="app-content screen-2" id="screen2">
+                <button class="back-btn" onclick="goToScreen1()">←</button>
+                <h1>Setup Password</h1>
+                <p class="subtitle">Setup a password for your business account</p>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" oninput="validatePassword()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" oninput="validatePassword()">
+                </div>
+                
+                <div class="requirements">
+                    <p style="margin-bottom: 8px; color: #666; font-size: 14px;">This password must contain:</p>
+                    <div class="requirement unmet" id="letterReq">
+                        <span class="requirement-icon">❌</span>
+                        at least one letter
+                    </div>
+                    <div class="requirement unmet" id="numberReq">
+                        <span class="requirement-icon">❌</span>
+                        at least one number
+                    </div>
+                    <div class="requirement unmet" id="lengthReq">
+                        <span class="requirement-icon">❌</span>
+                        8 characters or more
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="passwordContinueBtn" disabled onclick="goToScreen3()">Continue</button>
+            </div>
+            
+            <!-- Screen 3: About Business -->
+            <div class="app-content screen-3" id="screen3">
+                <button class="back-btn" onclick="goToScreen2()">←</button>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <h1>About your business</h1>
+                <p class="subtitle">Tell us more about your business</p>
+                
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" oninput="validateBusiness()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" id="businessName" placeholder="Enter your business name" oninput="validateBusiness()">
+                </div>
+                
+                <button class="btn btn-primary" id="businessNextBtn" disabled onclick="showSuccess()">Next</button>
+                <button class="btn btn-tertiary">Continue Later</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="navigation">
+        <button class="nav-btn" onclick="goToScreen1()">Create Account</button>
+        <button class="nav-btn" onclick="goToScreen2()">Setup Password</button>
+        <button class="nav-btn" onclick="goToScreen3()">About Business</button>
+    </div>
+
+    <script>
+        function validateEmail() {
+            const email = document.getElementById('email').value;
+            const continueBtn = document.getElementById('continueBtn');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            continueBtn.disabled = !emailRegex.test(email);
+        }
+        
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const continueBtn = document.getElementById('passwordContinueBtn');
+            
+            // Check requirements
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasLength = password.length >= 8;
+            const passwordsMatch = password === confirmPassword && confirmPassword !== '';
+            
+            // Update requirement indicators
+            updateRequirement('letterReq', hasLetter);
+            updateRequirement('numberReq', hasNumber);
+            updateRequirement('lengthReq', hasLength);
+            
+            continueBtn.disabled = !(hasLetter && hasNumber && hasLength && passwordsMatch);
+        }
+        
+        function updateRequirement(id, met) {
+            const req = document.getElementById(id);
+            if (met) {
+                req.className = 'requirement met';
+                req.querySelector('.requirement-icon').textContent = '✅';
+            } else {
+                req.className = 'requirement unmet';
+                req.querySelector('.requirement-icon').textContent = '❌';
+            }
+        }
+        
+        function validateBusiness() {
+            const name = document.getElementById('name').value;
+            const businessName = document.getElementById('businessName').value;
+            const nextBtn = document.getElementById('businessNextBtn');
+            nextBtn.disabled = !(name.trim() && businessName.trim());
+        }
+        
+        function goToScreen1() {
+            document.querySelectorAll('.app-content').forEach(s => s.style.display = 'none');
+            document.getElementById('screen1').style.display = 'block';
+        }
+        
+        function goToScreen2() {
+            document.querySelectorAll('.app-content').forEach(s => s.style.display = 'none');
+            document.getElementById('screen2').style.display = 'block';
+        }
+        
+        function goToScreen3() {
+            document.querySelectorAll('.app-content').forEach(s => s.style.display = 'none');
+            document.getElementById('screen3').style.display = 'block';
+        }
+        
+        function showGoogleSignIn() {
+            alert('Google Sign-In would open here. For demo, proceeding to business setup.');
+            goToScreen3();
+        }
+        
+        function showSuccess() {
+            alert('Registration complete! 🎉\n\nYour Veyra vendor account has been created successfully.');
+        }
+    </script>
+</body>
+</html>
