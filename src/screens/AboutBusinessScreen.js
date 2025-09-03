@@ -19,7 +19,7 @@ const AboutBusinessScreen = ({ navigation, route }) => {
 
   const handleNext = () => {
     if (isButtonEnabled) {
-      // Navigate to next screen in the flow
+      navigation.navigate('SelectCategory'); 
       console.log('Proceeding to next step with:', { name, businessName });
     }
   };

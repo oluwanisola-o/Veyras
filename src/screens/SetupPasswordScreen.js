@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import PasswordRequirements from '../components/PasswordRequirements';
-import { signUpWithEmail } from '../config/supabase';
+import { supabase } from '../../lib/supabase';
 
 const SetupPasswordScreen = ({ navigation, route }) => {
   const { email } = route.params;
@@ -32,11 +32,23 @@ const SetupPasswordScreen = ({ navigation, route }) => {
   const handleContinue = async () => {
     if (isButtonEnabled) {
       try {
-        const { data, error } = await signUpWithEmail(email, password);
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
         if (error) {
           Alert.alert('Error', error.message);
         } else {
-          navigation.navigate('AboutBusiness', { email, password, user: data.user });
+          Alert.alert(
+            'Success!', 
+            'Account created successfully. Please check your email to verify your account.',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigation.navigate('AboutBusiness', { email, password, user: data.user })
+              }
+            ]
+          );
         }
       } catch (error) {
         Alert.alert('Error', 'Failed to create account. Please try again.');

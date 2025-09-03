@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-const ProgressBar = ({ progress = 0, totalSteps = 1, style }) => {
-  const progressPercentage = (progress / totalSteps) * 100;
+const ProgressBar = ({ currentStep = 1, totalSteps = 5, style }) => {
+  const progressPercentage = (currentStep / totalSteps) * 100;
 
   return (
     <View style={[styles.container, style]}>

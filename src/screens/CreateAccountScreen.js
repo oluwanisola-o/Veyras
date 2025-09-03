@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LanguageSelector from '../components/LanguageSelector';
-import { signUpWithEmail } from '../config/supabase';
+import { supabase } from '../../lib/supabase';
 
 const CreateAccountScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -34,22 +34,30 @@ const CreateAccountScreen = ({ navigation }) => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    // This will show a mock Google sign-in flow
-    Alert.alert(
-      'Google Sign In',
-      'This would normally open Google sign-in. For demo purposes, proceeding to business setup.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Continue',
-          onPress: () => navigation.navigate('AboutBusiness'),
-        },
-      ]
-    );
+  const handleGoogleSignIn = async () => {
+    try {
+      // For now, showing mock flow - Google OAuth would require additional setup
+      Alert.alert(
+        'Google Sign In',
+        'Google authentication would be implemented here with Supabase OAuth.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Continue Demo',
+            onPress: () => navigation.navigate('AboutBusiness'),
+          },
+        ]
+      );
+      // Future implementation:
+      // const { data, error } = await supabase.auth.signInWithOAuth({
+      //   provider: 'google'
+      // });
+    } catch (error) {
+      Alert.alert('Error', 'Google sign-in failed. Please try again.');
+    }
   };
 
   const handleSignInAsCustomer = () => {
