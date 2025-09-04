@@ -15,33 +15,70 @@ import ProgressBar from '../components/ProgressBar';
 const { width } = Dimensions.get('window');
 
 const AddressConfirmationScreen = ({ navigation, route }) => {
-  const { selectedAddress } = route.params;
-  const [pinLocation, setPinLocation] = useState({ latitude: 52.5200, longitude: 13.4050 });
+  const { selectedAddress, coordinates, fromWorkLocation, workLocationData, editedData } = route.params;
+  const [pinPosition, setPinPosition] = useState(coordinates);
 
-  // Parse address for display
-  const addressParts = selectedAddress.split(', ');
-  const street = addressParts[0] || '';
-  const city = addressParts[1] || '';
-  const country = addressParts[2] || '';
+  // Parse address for display - use edited data if available
+  let street, city, zipCode, country;
+  
+  if (editedData) {
+    street = editedData.streetAddress;
+    city = editedData.city;
+    zipCode = editedData.zipCode;
+    country = 'Germany';
+  } else {
+    const addressParts = selectedAddress.split(', ');
+    street = addressParts[0] || '';
+    // Check if city contains zip code
+    const cityPart = addressParts[1] || '';
+    const cityMatch = cityPart.match(/^(.+?)\s+(\d{5})$/);
+    if (cityMatch) {
+      city = cityMatch[1];
+      zipCode = cityMatch[2];
+    } else {
+      city = cityPart;
+      zipCode = '';
+    }
+    country = addressParts[2] || '';
+  }
 
-  const handleBack = () => {
-    navigation.goBack();
+  const handleEditAddress = () => {
+    navigation.navigate('EditAddress', { 
+      currentAddress: selectedAddress,
+      coordinates: pinPosition,
+      fromWorkLocation,
+      workLocationData
+    });
   };
 
   const handleNext = () => {
-    navigation.navigate('ServicesSelection', { address: selectedAddress, location: pinLocation });
-  };
-
-  const handleEdit = () => {
-    navigation.navigate('EditAddress', { selectedAddress });
+    if (fromWorkLocation) {
+      // Navigate to ServicesSelection instead of back to WorkLocation
+      navigation.navigate('ServicesSelection', {
+        address: selectedAddress,
+        coordinates: pinPosition,
+        fromWorkLocation: true,
+        workLocationData: { ...workLocationData, address: selectedAddress }
+      });
+    } else {
+      // Continue normal flow to ServicesSelection
+      navigation.navigate('ServicesSelection', {
+        address: selectedAddress,
+        coordinates: pinPosition
+      });
+    }
   };
 
   const handleContinueLater = () => {
     navigation.navigate('Dashboard');
   };
 
-  const handlePinDrag = (coordinate) => {
-    setPinLocation(coordinate);
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handlePinDrag = (newCoordinates) => {
+    setPinPosition(newCoordinates);
   };
 
   return (
@@ -50,44 +87,72 @@ const AddressConfirmationScreen = ({ navigation, route }) => {
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#1A1918" />
         </TouchableOpacity>
-        <ProgressBar currentStep={5} totalSteps={6} />
+        <ProgressBar currentStep={6} totalSteps={7} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Enter your address</Text>
-          
-          <View style={styles.addressContainer}>
-            <View style={styles.addressContent}>
-              <Text style={styles.streetText}>{street}</Text>
-              <Text style={styles.cityText}>{city}</Text>
-              <Text style={styles.zipText}>10443, {city}</Text>
-              <Text style={styles.countryText}>{country}</Text>
-            </View>
-            <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
-              <Text style={styles.editText}>Edit</Text>
-            </TouchableOpacity>
+          <Text style={styles.title}>Confirm your address</Text>
+        </View>
+
+        <View style={styles.addressContainer}>
+          <View style={styles.addressContent}>
+            <Text style={styles.streetAddress}>{street}</Text>
+            <Text style={styles.cityAddress}>{city}</Text>
+            {zipCode && <Text style={styles.cityAddress}>{zipCode}</Text>}
+            <Text style={styles.cityAddress}>{country}</Text>
           </View>
+          <TouchableOpacity onPress={handleEditAddress} style={styles.editButton}>
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionTitle}>Wrong location?</Text>
-          <Text style={styles.instructionSubtitle}>Move the pin to the right location</Text>
-        </View>
-
-        <View style={styles.mapContainer}>
-          <View style={styles.mockMap}>
-            {/* Mock map with pins */}
-            <View style={[styles.pin, { top: 120, left: 60 }]} />
-            <View style={[styles.pin, styles.selectedPin, { top: 180, left: 200 }]} />
-            <View style={[styles.pin, { top: 280, left: 320 }]} />
-            
-            {/* Mock map lines to simulate streets */}
-            <View style={[styles.mapLine, { top: 100, left: 0, width: width - 40 }]} />
-            <View style={[styles.mapLine, { top: 200, left: 0, width: width - 40 }]} />
-            <View style={[styles.mapLine, { top: 300, left: 0, width: width - 40 }]} />
-            <View style={[styles.mapLineVertical, { top: 0, left: 100, height: 350 }]} />
-            <View style={[styles.mapLineVertical, { top: 0, left: 250, height: 350 }]} />
+        <View style={styles.mapSection}>
+          <Text style={styles.mapInstructions}>
+            Wrong location?
+          </Text>
+          <Text style={styles.mapSubInstructions}>
+            Move the pin to the right location
+          </Text>
+          
+          <View style={styles.mapContainer}>
+            {/* Mock Map Component - In real app, use react-native-maps */}
+            <View style={styles.mockMap}>
+              <View style={styles.mapBackground}>
+                {/* Mock street lines */}
+                <View style={[styles.street, { top: 50, left: 0, width: '100%', height: 3 }]} />
+                <View style={[styles.street, { top: 120, left: 0, width: '100%', height: 3 }]} />
+                <View style={[styles.street, { top: 0, left: 80, width: 3, height: '100%' }]} />
+                <View style={[styles.street, { top: 0, left: 150, width: 3, height: '100%' }]} />
+                
+                {/* Mock buildings */}
+                <View style={[styles.building, { top: 20, left: 20, width: 50, height: 25 }]} />
+                <View style={[styles.building, { top: 60, left: 100, width: 40, height: 30 }]} />
+                <View style={[styles.building, { top: 90, left: 200, width: 35, height: 25 }]} />
+                
+                {/* Draggable Pin */}
+                <TouchableOpacity 
+                  style={[styles.pin, { 
+                    top: 85,
+                    left: 140
+                  }]}
+                  onPress={() => handlePinDrag({ lat: 52.5210, lng: 13.4060 })}
+                >
+                  <View style={styles.pinContainer}>
+                    <View style={styles.pinDot} />
+                    <View style={styles.pinStem} />
+                  </View>
+                </TouchableOpacity>
+                
+                {/* Additional pins for context */}
+                <View style={[styles.contextPin, { top: 45, left: 60 }]}>
+                  <View style={styles.contextPinDot} />
+                </View>
+                <View style={[styles.contextPin, { top: 130, left: 280 }]}>
+                  <View style={styles.contextPinDot} />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -122,113 +187,149 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
   titleSection: {
+    marginTop: 40,
     marginBottom: 24,
   },
   title: {
     fontSize: 28,
-    lineHeight: 32,
     fontWeight: '600',
     color: '#1A1918',
+    lineHeight: 32,
     fontFamily: 'Geist',
-    marginBottom: 24,
   },
   addressContainer: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
   },
   addressContent: {
     flex: 1,
   },
-  streetText: {
-    fontSize: 16,
-    fontWeight: '500',
+  streetAddress: {
+    fontSize: 17,
+    fontWeight: '600',
     color: '#1A1918',
-    marginBottom: 2,
+    fontFamily: 'Geist',
+    marginBottom: 4,
+    lineHeight: 22,
   },
-  cityText: {
-    fontSize: 14,
+  cityAddress: {
+    fontSize: 17,
     color: '#4A4846',
+    fontFamily: 'Geist',
     marginBottom: 2,
-  },
-  zipText: {
-    fontSize: 14,
-    color: '#4A4846',
-    marginBottom: 2,
-  },
-  countryText: {
-    fontSize: 14,
-    color: '#4A4846',
+    lineHeight: 22,
   },
   editButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  editText: {
+  editButtonText: {
     fontSize: 16,
-    color: '#1A1918',
+    color: '#EF6C4D',
+    fontFamily: 'Geist',
     fontWeight: '500',
   },
-  instructionsContainer: {
+  mapSection: {
     marginBottom: 24,
   },
-  instructionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+  mapInstructions: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#1A1918',
     marginBottom: 4,
+    fontFamily: 'Geist',
   },
-  instructionSubtitle: {
-    fontSize: 14,
+  mapSubInstructions: {
+    fontSize: 16,
     color: '#4A4846',
+    marginBottom: 16,
+    fontFamily: 'Geist',
+    lineHeight: 22,
   },
   mapContainer: {
-    height: 350,
+    height: 200,
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 40,
+    backgroundColor: '#F0F0F0',
   },
   mockMap: {
     flex: 1,
-    backgroundColor: '#E8F4F8',
     position: 'relative',
+  },
+  mapBackground: {
+    flex: 1,
+    backgroundColor: '#E8E8E8',
+    position: 'relative',
+  },
+  street: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  building: {
+    position: 'absolute',
+    backgroundColor: '#D0D0D0',
+    borderRadius: 2,
   },
   pin: {
     position: 'absolute',
-    width: 12,
-    height: 12,
-    backgroundColor: '#EF6C4D',
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    width: 24,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-  selectedPin: {
+  pinContainer: {
+    alignItems: 'center',
+  },
+  pinDot: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#D63031',
+    backgroundColor: '#EF6C4D',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  mapLine: {
-    position: 'absolute',
-    height: 2,
-    backgroundColor: '#B8E6F0',
-  },
-  mapLineVertical: {
-    position: 'absolute',
+  pinStem: {
     width: 2,
-    backgroundColor: '#B8E6F0',
+    height: 8,
+    backgroundColor: '#EF6C4D',
+    marginTop: -1,
+  },
+  contextPin: {
+    position: 'absolute',
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+  },
+  contextPinDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF6C4D',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   buttonContainer: {
+    paddingTop: 24,
     paddingBottom: 40,
   },
   nextButton: {
@@ -236,11 +337,12 @@ const styles = StyleSheet.create({
   },
   continueLaterButton: {
     alignItems: 'center',
-    paddingVertical: 12,
   },
   continueLaterText: {
     fontSize: 16,
     color: '#30160F',
+    fontFamily: 'Geist',
+    fontWeight: '600',
     textDecorationLine: 'underline',
   },
 });

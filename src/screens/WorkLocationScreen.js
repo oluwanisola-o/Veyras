@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,37 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Modal,
+  TextInput,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import ProgressBar from '../components/ProgressBar';
 
+const { width } = Dimensions.get('window');
+
 const WorkLocationScreen = ({ navigation, route }) => {
-  const { category, teamSize } = route.params;
+  const { category, teamSize, selectedAddress, addressConfirmed, locationData } = route.params || {};
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showNoLocationForm, setShowNoLocationForm] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [selectedAddressFromModal, setSelectedAddressFromModal] = useState(selectedAddress || null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const [address, setAddress] = useState('');
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Handle when returning from address modal
+  useEffect(() => {
+    if (selectedAddress && addressConfirmed && locationData?.type === 'at-my-place') {
+      setSelectedLocation('at-my-place');
+      setSelectedAddressFromModal(selectedAddress);
+    }
+  }, [selectedAddress, addressConfirmed, locationData]);
 
   const locationOptions = [
     {
@@ -44,30 +59,92 @@ const WorkLocationScreen = ({ navigation, route }) => {
   ];
 
   const handleLocationSelect = (locationId) => {
+    if (selectedLocation === locationId && locationId === 'no-street-location') {
+      setSelectedLocation(null);
+      setShowNoLocationForm(false);
+      return;
+    }
+
     setSelectedLocation(locationId);
     setShowNoLocationForm(false);
-    setShowAddressModal(false);
 
     if (locationId === 'no-street-location') {
       setShowNoLocationForm(true);
     } else if (locationId === 'at-my-place') {
+      // Clear search input and show modal
+      setAddress('');
+      setSuggestions([]);
+      setShowSuggestions(false);
       setShowAddressModal(true);
     }
   };
+
+  // Address modal functions
+  const getAddressSuggestions = (input) => {
+    const allSuggestions = [
+      'Alexanderplatz 1, Berlin 10178, Germany',
+      'Potsdamer Platz 10, Berlin 10785, Germany',
+      'Unter den Linden 77, Berlin 10117, Germany',
+      'Kurfürstendamm 26, Berlin 10719, Germany',
+      'Hackescher Markt 2, Berlin 10178, Germany',
+      'Warschauer Straße 58, Berlin 10243, Germany',
+      'Friedrichstraße 107, Berlin 10117, Germany',
+      'Prenzlauer Berg 15, Berlin 10405, Germany',
+      'Kreuzberg 42, Berlin 10965, Germany',
+      'Mitte 88, Berlin 10117, Germany',
+      'Erasmusstraße, Berlin 10553, Germany',
+      'Erasmusstraße, Dusseldorf 40233, Germany',
+      'Erasmusstraße, Bremen 28199, Germany',
+      'Erasmus-Grasser-Gymnasium, Fürstenrieder Straße, Bremen 28199, Germany'
+    ];
+
+    if (!input || input.length < 2) return [];
+    
+    return allSuggestions.filter(suggestion =>
+      suggestion.toLowerCase().includes(input.toLowerCase())
+    ).slice(0, 6);
+  };
+
+  const handleAddressChange = (text) => {
+    setAddress(text);
+    const newSuggestions = getAddressSuggestions(text);
+    setSuggestions(newSuggestions);
+    setShowSuggestions(newSuggestions.length > 0);
+  };
+
+  const handleSuggestionSelect = (suggestion) => {
+    setAddress(''); // Clear search input
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setShowAddressModal(false);
+    
+    // Navigate to AddressConfirmation
+    navigation.navigate('AddressConfirmation', {
+      selectedAddress: suggestion,
+      coordinates: { lat: 52.5200, lng: 13.4050 },
+      fromWorkLocation: true,
+      workLocationData: { type: 'at-my-place' }
+    });
+  };
+
+  const handleCloseModal = () => {
+    setShowAddressModal(false);
+    setAddress(''); // Clear search input when closing modal
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
 
   const handleContinue = () => {
     if (selectedLocation) {
       const locationData = {
         type: selectedLocation,
-        ...(selectedLocation === 'no-street-location' && { city, state, zipCode }),
-        ...(selectedLocation === 'at-my-place' && { address }),
+        city,
+        state,
+        zipCode,
+        address,
       };
-      
-      navigation.navigate('NextScreen', { 
-        category, 
-        teamSize, 
-        location: locationData 
-      });
+      navigation.navigate('ServicesSelection', { locationData });
     }
   };
 
@@ -77,41 +154,14 @@ const WorkLocationScreen = ({ navigation, route }) => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('TeamSize');
   };
 
-  const handleAddressChange = (text) => {
-    setAddress(text);
-    // Mock address suggestions with realistic German addresses
-    if (text.length > 2) {
-      const mockSuggestions = [
-        'Alexanderplatz 1, Berlin, Germany',
-        'Potsdamer Platz 5, Berlin, Germany', 
-        'Unter den Linden 10, Berlin, Germany',
-        'Hackescher Markt 2, Berlin, Germany',
-        'Kurfürstendamm 15, Berlin, Germany',
-        'Prenzlauer Berg 8, Berlin, Germany',
-        'Kreuzberg Straße 22, Berlin, Germany',
-        'Charlottenburg Platz 7, Berlin, Germany'
-      ];
-      
-      const filtered = mockSuggestions.filter(suggestion =>
-        suggestion.toLowerCase().includes(text.toLowerCase())
-      );
-      setAddressSuggestions(filtered);
-    } else {
-      setAddressSuggestions([]);
-    }
-  };
-
-  const selectAddressSuggestion = (suggestion) => {
-    setAddress(suggestion);
-    setAddressSuggestions([]);
-  };
 
   const isButtonEnabled = selectedLocation !== null && 
     (selectedLocation !== 'no-street-location' || (city && state && zipCode)) &&
-    (selectedLocation !== 'at-my-place' || address);
+    (selectedLocation !== 'at-my-place' || selectedAddressFromModal) &&
+    (selectedLocation !== 'mobile-office' || true);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -119,7 +169,7 @@ const WorkLocationScreen = ({ navigation, route }) => {
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#333333" />
         </TouchableOpacity>
-        <ProgressBar currentStep={4} totalSteps={5} />
+        <ProgressBar currentStep={4} totalSteps={5} style={styles.progressBar} />
       </View>
 
       <View style={styles.content}>
@@ -181,45 +231,55 @@ const WorkLocationScreen = ({ navigation, route }) => {
             </View>
           )}
 
-          {/* At My Place Card */}
-          <TouchableOpacity
-            style={[
-              styles.locationCard,
-              selectedLocation === 'at-my-place' && styles.selectedLocationCard
-            ]}
-            onPress={() => handleLocationSelect('at-my-place')}
-            activeOpacity={0.8}
-          >
-            <Text style={[
-              styles.cardTitle,
-              selectedLocation === 'at-my-place' && styles.selectedCardTitle
-            ]}>
-              At my place
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              I own my place and client come to me or I work in a share space for creatives that clients can come to for my services
-            </Text>
-          </TouchableOpacity>
+          {/* Show cards only when no street location is NOT selected */}
+          {selectedLocation !== 'no-street-location' && (
+            <>
+              {/* At My Place Card */}
+              <TouchableOpacity
+                style={[
+                  styles.locationCard,
+                  selectedLocation === 'at-my-place' && styles.selectedLocationCard
+                ]}
+                onPress={() => handleLocationSelect('at-my-place')}
+                activeOpacity={0.8}
+              >
+                <Text style={[
+                  styles.cardTitle,
+                  selectedLocation === 'at-my-place' && styles.selectedCardTitle
+                ]}>
+                  At my place
+                </Text>
+                <Text style={styles.cardSubtitle}>
+                  I own my place and client come to me or I work in a share space for creatives that clients can come to for my services
+                </Text>
+                {selectedAddressFromModal && selectedLocation === 'at-my-place' && (
+                  <Text style={styles.selectedAddressText}>
+                    {selectedAddressFromModal}
+                  </Text>
+                )}
+              </TouchableOpacity>
 
-          {/* Mobile Office Card */}
-          <TouchableOpacity
-            style={[
-              styles.locationCard,
-              selectedLocation === 'mobile-office' && styles.selectedLocationCard
-            ]}
-            onPress={() => handleLocationSelect('mobile-office')}
-            activeOpacity={0.8}
-          >
-            <Text style={[
-              styles.cardTitle,
-              selectedLocation === 'mobile-office' && styles.selectedCardTitle
-            ]}>
-              Mobile office
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              I perform my services on the go either in clients location or a meet point
-            </Text>
-          </TouchableOpacity>
+              {/* Mobile Office Card */}
+              <TouchableOpacity
+                style={[
+                  styles.locationCard,
+                  selectedLocation === 'mobile-office' && styles.selectedLocationCard
+                ]}
+                onPress={() => handleLocationSelect('mobile-office')}
+                activeOpacity={0.8}
+              >
+                <Text style={[
+                  styles.cardTitle,
+                  selectedLocation === 'mobile-office' && styles.selectedCardTitle
+                ]}>
+                  Mobile office
+                </Text>
+                <Text style={styles.cardSubtitle}>
+                  I perform my services on the go either in clients location or a meet point
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -230,12 +290,9 @@ const WorkLocationScreen = ({ navigation, route }) => {
             style={styles.nextButton}
           />
           
-          <Button
-            title="Continue Later"
-            onPress={handleContinueLater}
-            variant="tertiary"
-            style={styles.continueButton}
-          />
+          <TouchableOpacity onPress={handleContinueLater}>
+            <Text style={styles.continueLaterText}>Continue Later</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -244,16 +301,13 @@ const WorkLocationScreen = ({ navigation, route }) => {
         visible={showAddressModal}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={handleCloseModal}
       >
-        <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => setShowAddressModal(false)}
-              style={styles.modalBackButton}
-            >
-              <Icon name="arrow-back" size={24} color="#333333" />
+            <TouchableOpacity onPress={handleCloseModal} style={styles.closeButton}>
+              <Icon name="close" size={24} color="#1A1918" />
             </TouchableOpacity>
-            <ProgressBar currentStep={4} totalSteps={5} />
           </View>
 
           <View style={styles.modalContent}>
@@ -263,30 +317,26 @@ const WorkLocationScreen = ({ navigation, route }) => {
             </Text>
 
             <View style={styles.searchContainer}>
-              <Icon name="search" size={20} color="#999999" style={styles.searchIcon} />
-              <Input
+              <Icon name="search" size={20} color="#8D8A87" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
                 placeholder="Search for service or business name"
+                placeholderTextColor="#8D8A87"
                 value={address}
                 onChangeText={handleAddressChange}
-                style={styles.addressInput}
+                autoFocus={true}
               />
             </View>
 
-            {addressSuggestions.length > 0 && (
+            {showSuggestions && suggestions.length > 0 && (
               <View style={styles.suggestionsContainer}>
-                {addressSuggestions.map((suggestion, index) => (
+                {suggestions.map((suggestion, index) => (
                   <TouchableOpacity
                     key={index}
-                    style={[
-                      styles.suggestionItem,
-                      index === 0 && styles.firstSuggestion
-                    ]}
-                    onPress={() => {
-                      selectAddressSuggestion(suggestion);
-                      setShowAddressModal(false);
-                      navigation.navigate('AddressConfirmation', { selectedAddress: suggestion });
-                    }}
+                    style={styles.suggestionItem}
+                    onPress={() => handleSuggestionSelect(suggestion)}
                   >
+                    <Icon name="location-on" size={16} color="#8D8A87" style={styles.suggestionIcon} />
                     <Text style={styles.suggestionText}>{suggestion}</Text>
                   </TouchableOpacity>
                 ))}
@@ -294,10 +344,10 @@ const WorkLocationScreen = ({ navigation, route }) => {
             )}
 
             <TouchableOpacity style={styles.cantFindAddress}>
-              <Text style={styles.cantFindText}>Can't find your address?</Text>
+              <Text style={styles.cantFindAddressText}>Can't find your address?</Text>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -313,6 +363,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
   },
+  progressBar: {
+    marginBottom: 40,
+    paddingHorizontal: 0,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -325,20 +379,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   titleSection: {
-    marginBottom: 40,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '600',
     color: '#333333',
-    marginBottom: 12,
-    fontFamily: 'System',
+    marginBottom: 8,
+    lineHeight: 32,
+    fontFamily: 'Geist',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '400',
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   optionsContainer: {
     flex: 1,
@@ -348,7 +404,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333333',
     marginBottom: 16,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   radioOption: {
     flexDirection: 'row',
@@ -378,12 +434,11 @@ const styles = StyleSheet.create({
   radioText: {
     fontSize: 16,
     color: '#333333',
-    fontFamily: 'System',
+    fontFamily: 'Geist',
     flex: 1,
   },
   locationForm: {
     marginBottom: 24,
-    paddingLeft: 36,
   },
   formLabel: {
     fontSize: 16,
@@ -391,7 +446,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 8,
     marginTop: 16,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   formInput: {
     marginBottom: 0,
@@ -413,7 +468,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333333',
     marginBottom: 8,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   selectedCardTitle: {
     color: '#EF6C4D',
@@ -422,7 +477,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     lineHeight: 20,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   buttonContainer: {
     paddingBottom: 40,
@@ -430,8 +485,19 @@ const styles = StyleSheet.create({
   nextButton: {
     marginBottom: 16,
   },
-  continueButton: {
-    borderColor: '#EF6C4D',
+  continueLaterText: {
+    fontSize: 16,
+    color: '#30160F',
+    textAlign: 'center',
+    fontFamily: 'Geist',
+    fontWeight: '600',
+  },
+  selectedAddressText: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 8,
+    fontFamily: 'Geist',
+    fontStyle: 'italic',
   },
   // Modal styles
   modalContainer: {
@@ -442,85 +508,82 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 10,
+    alignItems: 'flex-end',
   },
-  modalBackButton: {
+  closeButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
-    alignItems: 'flex-start',
-    marginBottom: 20,
+    alignItems: 'center',
   },
   modalContent: {
     flex: 1,
     paddingHorizontal: 20,
   },
   modalTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#333333',
-    marginBottom: 12,
-    fontFamily: 'System',
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#1A1918',
+    marginBottom: 8,
+    lineHeight: 32,
+    fontFamily: 'Geist',
   },
   modalSubtitle: {
-    fontSize: 16,
-    color: '#666666',
+    fontSize: 18,
+    fontWeight: '400',
+    color: '#4A4846',
     lineHeight: 24,
-    marginBottom: 40,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
+    marginBottom: 32,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    height: 56,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#E0DDDB',
+    borderRadius: 28,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
     marginBottom: 16,
   },
   searchIcon: {
     marginRight: 12,
   },
-  addressInput: {
+  searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333333',
-    fontFamily: 'System',
+    color: '#4A4846',
+    fontFamily: 'Geist',
   },
   suggestionsContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F8F8',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    paddingVertical: 8,
+    maxHeight: 300,
   },
   suggestionItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  firstSuggestion: {
-    backgroundColor: '#F8F8F8',
+  suggestionIcon: {
+    marginRight: 12,
   },
   suggestionText: {
+    flex: 1,
     fontSize: 16,
-    color: '#333333',
-    fontFamily: 'System',
+    color: '#1A1918',
+    fontFamily: 'Geist',
   },
   cantFindAddress: {
-    marginTop: 24,
-    alignItems: 'center',
+    marginTop: 16,
   },
-  cantFindText: {
+  cantFindAddressText: {
     fontSize: 16,
-    color: '#666666',
-    fontFamily: 'System',
+    color: '#30160F',
+    fontFamily: 'Geist',
   },
 });
 

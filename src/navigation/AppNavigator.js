@@ -7,7 +7,10 @@ import AboutBusinessScreen from '../screens/AboutBusinessScreen';
 import SelectCategoryScreen from '../screens/SelectCategoryScreen';
 import TeamSizeScreen from '../screens/TeamSizeScreen';
 import WorkLocationScreen from '../screens/WorkLocationScreen';
+import AddressInputScreen from '../screens/AddressInputScreen';
 import AddressConfirmationScreen from '../screens/AddressConfirmationScreen';
+import ServicesSelectionScreen from '../screens/ServicesSelectionScreen';
+import EditAddressScreen from '../screens/EditAddressScreen';
 
 const Stack = createStackNavigator();
 
@@ -16,8 +19,9 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="CreateAccount"
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerShown: false,
+          presentation: route.params?.isModal ? 'modal' : 'card',
           cardStyleInterpolator: ({ current, layouts }) => {
             return {
               cardStyle: {
@@ -32,7 +36,7 @@ const AppNavigator = () => {
               },
             };
           },
-        }}
+        })}
       >
         <Stack.Screen 
           name="CreateAccount" 
@@ -65,9 +69,24 @@ const AppNavigator = () => {
           options={{ title: 'Work Location' }}
         />
         <Stack.Screen 
+          name="AddressInput" 
+          component={AddressInputScreen}
+          options={{ title: 'Address Input' }}
+        />
+        <Stack.Screen 
           name="AddressConfirmation" 
           component={AddressConfirmationScreen}
           options={{ title: 'Address Confirmation' }}
+        />
+        <Stack.Screen 
+          name="ServicesSelection" 
+          component={ServicesSelectionScreen}
+          options={{ title: 'Services Selection' }}
+        />
+        <Stack.Screen 
+          name="EditAddress" 
+          component={EditAddressScreen}
+          options={{ title: 'Edit Address' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

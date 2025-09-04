@@ -142,13 +142,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333333',
     marginBottom: 12,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   form: {
     flex: 1,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     fontSize: 14,
     color: '#999999',
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   googleButton: {
     marginBottom: 40,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   customerSignInText: {
     fontSize: 16,
     color: '#333333',
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   footer: {
     borderTopWidth: 1,

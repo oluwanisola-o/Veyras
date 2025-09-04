@@ -14,7 +14,7 @@ import PasswordRequirements from '../components/PasswordRequirements';
 import { supabase } from '../../lib/supabase';
 
 const SetupPasswordScreen = ({ navigation, route }) => {
-  const { email } = route.params;
+  const { email } = route.params || {};
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333333',
     marginBottom: 12,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   form: {
     flex: 1,

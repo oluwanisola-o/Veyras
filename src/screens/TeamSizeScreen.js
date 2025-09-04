@@ -17,11 +17,20 @@ const teamSizeOptions = [
 ];
 
 const TeamSizeScreen = ({ navigation, route }) => {
-  const { category } = route.params;
+  const { category } = route.params || {};
   const [selectedTeamSize, setSelectedTeamSize] = useState(null);
 
   const handleTeamSizeSelect = (teamSizeId) => {
     setSelectedTeamSize(teamSizeId);
+    // Auto-navigate to next screen
+    navigation.navigate('WorkLocation', { 
+      category, 
+      teamSize: teamSizeId 
+    });
+  };
+
+  const handleContinueLater = () => {
+    navigation.navigate('Dashboard');
   };
 
   const handleContinue = () => {
@@ -34,7 +43,7 @@ const TeamSizeScreen = ({ navigation, route }) => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('SelectCategory');
   };
 
   const isButtonEnabled = selectedTeamSize !== null;
@@ -67,33 +76,17 @@ const TeamSizeScreen = ({ navigation, route }) => {
               onPress={() => handleTeamSizeSelect(option.id)}
               activeOpacity={0.8}
             >
-              <View style={styles.radioContainer}>
-                <View style={[
-                  styles.radioButton,
-                  selectedTeamSize === option.id && styles.radioButtonSelected
-                ]}>
-                  {selectedTeamSize === option.id && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={[
-                  styles.optionText,
-                  selectedTeamSize === option.id && styles.selectedOptionText
-                ]}>
-                  {option.title}
-                </Text>
-              </View>
+              <Text style={[
+                styles.optionText,
+                selectedTeamSize === option.id && styles.selectedOptionText
+              ]}>
+                {option.title}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <View style={styles.buttonContainer}>
-          <Button
-            title="Next"
-            onPress={handleContinue}
-            disabled={!isButtonEnabled}
-            style={styles.nextButton}
-          />
         </View>
       </View>
     </SafeAreaView>
@@ -129,13 +122,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333333',
     marginBottom: 12,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   optionsContainer: {
     flex: 1,
@@ -143,7 +136,7 @@ const styles = StyleSheet.create({
   optionCard: {
     borderWidth: 1,
     borderColor: '#E5E5E5',
-    borderRadius: 24,
+    borderRadius: 28,
     paddingVertical: 20,
     paddingHorizontal: 24,
     marginBottom: 16,
@@ -179,7 +172,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     color: '#333333',
-    fontFamily: 'System',
+    fontFamily: 'Geist',
     fontWeight: '500',
   },
   selectedOptionText: {
@@ -189,8 +182,12 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingBottom: 40,
   },
-  nextButton: {
-    marginTop: 20,
+  continueLaterText: {
+    fontSize: 16,
+    color: '#30160F',
+    textAlign: 'center',
+    fontFamily: 'Geist',
+    fontWeight: '400',
   },
 });
 

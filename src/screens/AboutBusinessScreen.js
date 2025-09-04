@@ -30,7 +30,7 @@ const AboutBusinessScreen = ({ navigation, route }) => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('SetupPassword');
   };
 
   return (
@@ -119,13 +119,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333333',
     marginBottom: 12,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   form: {
     flex: 1,

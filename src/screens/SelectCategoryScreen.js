@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ProgressBar from '../components/ProgressBar';
@@ -63,7 +64,7 @@ const SelectCategoryScreen = ({ navigation }) => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('AboutBusiness');
   };
 
   const renderCategoryCard = (category) => (
@@ -102,7 +103,7 @@ const SelectCategoryScreen = ({ navigation }) => {
         <ProgressBar currentStep={2} totalSteps={5} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleSection}>
           <Text style={styles.title}>What's your business category</Text>
           <Text style={styles.subtitle}>
@@ -123,7 +124,9 @@ const SelectCategoryScreen = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         </View>
-      </View>
+        
+        <View style={styles.bottomPadding} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -157,19 +160,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333333',
     marginBottom: 12,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
-    fontFamily: 'System',
+    fontFamily: 'Geist',
   },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 20,
+  },
+  bottomPadding: {
+    height: 40,
   },
   categoryCard: {
     width: cardWidth,
@@ -200,6 +206,7 @@ const styles = StyleSheet.create({
   otherCategoriesCard: {
     width: cardWidth,
     backgroundColor: '#30160F',
+    marginBottom: 0,
   },
   otherCategoriesOverlay: {
     backgroundColor: '#30160F',
@@ -211,7 +218,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: 'System',
+    fontFamily: 'Geist',
     flex: 1,
   },
   checkmark: {
